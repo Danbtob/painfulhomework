@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Jade Delight</title>
+<script src="jquery-3.6.1.min.js"></script>
+<style type = "text/css">
+	.userInfo label {
+		display: inline-block;
+		text-align: right;
+		width: 100px;
+	}
+	
+	[type=radio] {
+		width: 39px;
+	}
+</style>
+</head>
+
+<body>
+<script>
+
+function MenuItem(name, cost)
+{
+	this.name = name;
+	this.cost=cost;
+}
+
+menuItems = new Array(
+	new MenuItem("Chicken Chop Suey", 5.5),
+	new MenuItem("Sweet and Sour Pork", 7.25),
+	new MenuItem("Shrimp Lo Mein", 6.80),
+	new MenuItem("Moo Shi Chicken", 9.50),
+	new MenuItem("Fried Rice", 3.25)
+);
+
+function makeSelect(name, minRange, maxRange)
+{
+	var t= "";
+	t = "<select name='" + name + "' size='1'>";
+	for (j=minRange; j<=maxRange; j++)
+	   t += "<option>" + j + "</option>";
+	t+= "</select>"; 
+	return t;
+}
+
+function td(content, className="")
+{
+	return "<td class = '" + className + "'>" + content + "</td>";
+}
+
+</script>
+
+<h1>Jade Delight</h1>
+<form>
+
+<p class="userInfo"><label>First Name:</label> <input type="text"  name='fname' /></p>
+<p class="userInfo"><label>Last Name*:</label>  <input type="text"  name='lname' /></p>
+<p class="userInfo address"><label>Street*:</label> <input type="text" name='street' /></p>
+<p class="userInfo address"><label>City*:</label> <input type="text" name='city' /></p>
+<p class="userInfo"><label>Phone*:</label> <input type="text"  name='phone' /></p>
+<p> 
+	<input type="radio"  name="p_or_d" value = "pickup" checked="checked"/>Pickup  
+	<input type="radio"  name='p_or_d' value = 'delivery'/>
+	Delivery
+</p>
+<table border="0" cellpadding="3">
+  <tr>
+    <th>Select Item</th>
+    <th>Item Name</th>
+    <th>Cost Each</th>
+    <th>Total Cost</th>
+  </tr>
+<script>
+
+  var s = "";
+  for (i=0; i< menuItems.length; i++)
+  {
+	  s += "<tr>";
+	  s += td(makeSelect("quan" + i, 0, 10),"selectQuantity");
+	  s += td(menuItems[i].name, "itemName");
+	  s += td("$" +menuItems[i].cost.toFixed(2), "cost");
+	  s += td("$<input type='text' name='cost'/>", "totalCost");
+	  s+= "</tr>";
+  }
+  document.writeln(s);
+</script>
+</table>
+<p class="subtotal totalSection"><label>Subtotal</label>: 
+   $ <input type="text"  name='subtotal' id="subtotal" />
+</p>
+<p class="tax totalSection"><label>Mass tax 6.25%:</label>
+  $ <input type="text"  name='tax' id="tax" />
+</p>
+<p class="total totalSection"><label>Total:</label> $ <input type="text"  name='total' id="total" />
+</p>
+
+<input type = "button" value = "Submit Order" />
+
+<script>
+/* creates onchange event for select options, stores selected quantity, and changes values for related functions */
+for (let i = 0; i < menuItems.length; i++) {
+	document.getElementsByName("quan" + i)[0].onchange = function() {
+		var quantity;
+		var stotal = 0;
+		
+		for (let i = 0; i < menuItems.length; i++) {
+			quantity = document.getElementsByName("quan" + i)[0].value;
+			
+			if (parseInt(quantity) != 0) {
+				stotal = displayTotalCost(quantity, i, stotal);
+			} else {
+				document.getElementsByName("cost")[i].value = "";
+			}
+		}
+		
+		displaySubtotal(stotal);
+		var tax = displayTax(stotal);
+		displayTotal(stotal, tax);
+	}
+}
+
+/* creates onclick event to change display of street and city fields; if pickup, then display; if deliver, then hide */
+if (document.getElementsByName("p_or_d")[0].checked) {
+	document.getElementsByClassName("userInfo address")[0].style.display = "none";
+	document.getElementsByClassName("userInfo address")[1].style.display = "none";
+}
+
+document.getElementsByName("p_or_d")[0].onclick = function () {
+	document.getElementsByClassName("userInfo address")[0].style.display = "none";
+	document.getElementsByClassName("userInfo address")[1].style.display = "none";
+}
+
+document.getElementsByName("p_or_d")[1].onclick = function () {
+	document.getElementsByClassName("userInfo address")[0].style.display = "block";
+	document.getElementsByClassName("userInfo address")[1].style.display = "block";
+}
+
+/* 
+Name: displayTotalCost
+Input: quantity of item being selected, index of item being selected, subtotal
+Output: updated subtotal
+Purpose: calculates total cost for ordering selected number of items; updates subtotal to include total cost
+*/
+function displayTotalCost(quantity, i, stotal) {
+	var totalcost = (parseInt(quantity) * menuItems[i].cost).toFixed(2);
+	document.getElementsByName("cost")[i].value = totalcost;
+	stotal += parseFloat(totalcost);
+	return stotal;
+}
+
+/* 
+Name: displaySubtotal
+Input: subtotal
+Output: updated tax based on subtotal
+Purpose: changes value of previous subtotal to be equal to new subtotal; changes as select options 
+		 update
+*/
+function displaySubtotal(stotal) {
+	if (stotal == 0) {
+		document.getElementById("subtotal").value = "";
+	} else {
+		document.getElementById("subtotal").value = stotal.toFixed(2);
+	}
+}
+
+/* 
+Name: displayTax
+Input: subtotal
+Output: none
+Purpose: changes the value of tax to be equal to subtotal * .0625 (Massachusetts Tax Rate)
+*/
+function displayTax(stotal) {
+	if (stotal == 0) {
+		document.getElementById("tax").value = "";
+	} else {
+		document.getElementById("tax").value = (stotal * .0625).toFixed(2);
+		return stotal * .0625;
+	}
+}
+
+/* 
+Name: displayTotal
+Input: subtotal and tax 
+Output: none
+Purpose: changes value of the final cost to be equal to subtotal * tax
+*/
+function displayTotal(stotal, tax) {
+	if (stotal == 0) {
+		document.getElementById("total").value = "";
+	} else {
+		document.getElementById("total").value = (stotal + tax).toFixed(2);
+	}
+}
+
+/* 
+Name: isValidLN
+Input: none
+Output: returns true if last name is valid; otherwise returns false
+Purpose: checks if last name field is not blank and contains only letters; returns true if so;
+		 otherwise returns false;
+*/
+function isValidLN() {
+	var last_name = document.getElementsByName("lname")[0];
+	var letters = /^[A-Za-z]+$/;
+	
+	if (last_name.value == "") {
+		alert("Please enter your last name");
+		last_name.focus();
+		last_name.select();
+		return false;
+	}
+	
+	if (!(last_name.value.match(letters))) {
+		alert("The name should contain only letters");
+		last_name.focus();
+		last_name.select();
+		return false;
+	}
+	
+	return true;
+}
+
+/* 
+Name: isValidPhone
+Input: none
+Output: returns true if phone number is valid; otherwise returns false
+Purpose: checks if phone number includes 7 or 10 digits and that the field is not blank; returns true 
+		 if so; otherwise returns false
+*/
+function isValidPhone() {
+	var phone = document.getElementsByName("phone")[0];
+	
+	if (phone.value == "") {
+		alert("Please enter a phone number");
+		phone.focus();
+		phone.select();
+		return false;
+	}
+	
+	var pat1 = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/;
+	var pat2 = /^[0-9]{3}[-\s\.]?[0-9]{4}$/;
+	
+	if (!(pat1.test(phone.value) || (pat2.test(phone.value)))) {
+		alert("Phone number is invalid. Please try either: xxx-xxxx or xxx-xxx-xxxx");
+		phone.focus();
+		phone.select();
+		return false;
+	}
+	
+	return true;
+}
+
+/* 
+Name: isValidAddress
+Input: name from field being validated
+Output: true if field is not blank; otherwise returns false
+Purpose: check if corresponding address field is empty and returns false if so; otherwise returns true 
+*/
+function isValidAddress(name) {
+	var address = document.getElementsByName(name)[0];
+	
+	if (address.value == "") {
+		alert("Please enter a " + name);
+		name.focus();
+		name.select();
+		return false;
+	}
+	
+	return true;
+}
+
+/* 
+Name: isValidItem
+Input: none
+Output: return false if no items are selected; otherwise return true
+Purpose: checks if an item has been selected; returns true if so; returns false otherwise
+*/
+function isValidItem() {
+	var n = 0;
+	
+	for (let i = 0; i < menuItems.length; i++) {
+		if (document.getElementsByName("quan" + i)[0].value != 0) {
+			n = 1;
+		}
+	}
+	
+	if (n == 0) {
+		alert("Please select at least one item to order"); 
+		return false;
+	}
+	
+	return true;
+}
+
+/* 
+Name: calcTime
+Input: number of minutes for delivery or pickup to be ready
+Output: estimated time of arrival/pickup
+Purpose: calculate the estimated time of arrival/pickup by using the current user time and adding the 
+		 pickup or delivery time
+*/
+function calcTime(time) {
+	t = new Date() 
+	new_time = new Date(t.getTime() + (time * 60000));
+	return new_time;
+}
+
+/* 
+Name: orderDetails
+Input: estimated time of arrival/pickup and whether the user chose "delivery" or "pickup"
+Output: alert message that thanks user for ordering and new window with order details; organizes time data
+Purpose: thank the user for ordering and display order details in a new window
+*/
+function orderDetails(estimated_time, del_or_pick) {
+	var hour = estimated_time.getHours();
+	
+	if (hour > 12) {
+		hour = hour - 12;
+	}
+	
+	var minute = estimated_time.getMinutes();
+	var am_or_pm;
+	
+	if (estimated_time.getHours() >= 12) {
+		am_or_pm = "PM";
+	} else {
+		am_or_pm = "AM";
+	}
+	
+	alert("Thanks for your order!");
+	
+	var newWindow = window.open("", "Order Details", "text-align: center");
+	
+	var items = "";
+	var stot = document.getElementById("subtotal").value;
+	var t = document.getElementById("tax").value;
+	var finaltotal = document.getElementById("total").value;
+	
+	for (let i = 0; i < menuItems.length; i++) {
+		if (document.getElementsByName("quan" + i)[0].value == 0) {
+			continue;
+		}
+		items = items + document.getElementsByName("quan" + i)[0].value
+				+ " " + menuItems[i].name + ": $" + 
+				document.getElementsByName("cost")[i].value + "<br />";
+	}
+	
+	newWindow.document.write("<strong><u>Order Details</u><br /><br /> Items: </strong><br />" + items + 
+							 "<br /><br /><strong>Subtotal: </strong>$" + stot + 
+							 "<br /><br /><strong>Tax: </strong>$" + t + 
+							 "<br /><br /><strong>Total: </strong>$" + finaltotal + 
+							 "<br /><br /><strong>" + del_or_pick + " Time: </strong>" + 
+							 hour + ":" + minute.toString().padStart(2, '0') + " " + am_or_pm);
+}
+
+/* adds event to button with value: "Submit Order"; calls validate function when button is clicked */
+document.querySelector('input[value="Submit Order"]').addEventListener("click", validate);
+
+/* 
+Name: validate
+Input: none
+Output: returns true if form is valid; otherwise returns false; calls function to show thank you message
+		and open new window with order details
+Purpose: calls related validation functions to see if last name, phone number, and address fields are valid;
+		 calls function that checks to ensure at least one item was ordered; calls function to display thank
+		 you message and open new window with order details
+*/
+function validate() {
+	var isValid = true; 
+	
+	if (isValidLN() == false) {
+		isValid = false;
+	}
+	
+	if (isValidPhone() == false) {
+		isValid = false;
+	}
+	
+	if (isValidItem() == false) {
+		isValid = false;
+	}
+	
+	var time;
+	var del_or_pick;
+	
+	if (!(document.getElementsByName("p_or_d")[0].checked)) {
+		if (isValidAddress("street") == false) {
+			isValid = false;
+		}
+		
+		if (isValidAddress("city") == false) {
+			isValid = false;
+		}
+		
+		time = 40;
+		del_or_pick = "Delivery";
+	} else {
+		time = 20;
+		del_or_pick = "Pickup";
+	}
+	
+	var estimated_time = calcTime(time);
+	
+	if (isValid == true) {
+		orderDetails(estimated_time, del_or_pick);
+	}
+	
+	return isValid;
+}
+</script>
+
+</form>
+</body>
+</html>
