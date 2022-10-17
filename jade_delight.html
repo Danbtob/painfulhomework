@@ -51,7 +51,7 @@ function td(content, className="")
 </script>
 
 <h1>Jade Delight</h1>
-<form>
+<form onsubmit = "return validate()">
 
 <p class="userInfo"><label>First Name:</label> <input type="text"  name='fname' /></p>
 <p class="userInfo"><label>Last Name*:</label>  <input type="text"  name='lname' /></p>
@@ -94,7 +94,7 @@ function td(content, className="")
 <p class="total totalSection"><label>Total:</label> $ <input type="text"  name='total' id="total" />
 </p>
 
-<input type = "button" value = "Submit Order" />
+<input type = "submit" value = "Submit Order" />
 
 <script>
 /* creates onchange event for select options, stores selected quantity, and changes values for related functions */
@@ -352,9 +352,6 @@ function orderDetails(estimated_time, del_or_pick) {
 							 "<br /><br /><strong>" + del_or_pick + " Time: </strong>" + 
 							 hour + ":" + minute.toString().padStart(2, '0') + " " + am_or_pm);
 }
-
-/* adds event to button with value: "Submit Order"; calls validate function when button is clicked */
-document.querySelector('input[value="Submit Order"]').addEventListener("click", validate);
 
 /* 
 Name: validate
